@@ -11,6 +11,10 @@ import top.maplex.ptctest.data.PlayerStats
 import top.maplex.ptctest.data.PlayerWaypoint
 import top.maplex.ptctest.data.SimpleNote
 import top.maplex.ptctest.data.AccountData
+import top.maplex.ptctest.data.PlayerTag
+import top.maplex.ptctest.data.PlayerPermission
+import top.maplex.ptctest.data.PlayerProperty
+import top.maplex.ptctest.data.PlayerProfile
 
 /**
  * 数据库 Mapper 声明
@@ -59,6 +63,18 @@ val guildMapper by mapper<Guild>(db(file = "test.db"))
 
 /** 账户 Mapper —— IndexedEnum 枚举索引测试，AccountType 以数值存储 */
 val accountMapper by mapper<AccountData>(db(file = "test.db"))
+
+/** 玩家标签 Mapper —— List<String> 容器类型测试，自动创建子表存储有序列表 */
+val tagMapper by mapper<PlayerTag>(db(file = "test.db"))
+
+/** 玩家权限 Mapper —— Set<String> 容器类型测试，自动创建子表存储无序集合 */
+val permMapper by mapper<PlayerPermission>(db(file = "test.db"))
+
+/** 玩家属性 Mapper —— Map<String, String> 容器类型测试，自动创建子表存储键值对 */
+val propMapper by mapper<PlayerProperty>(db(file = "test.db"))
+
+/** 玩家资料 Mapper —— 混合容器类型测试（List + Set + Map），同时创建三张子表 */
+val profileMapper by mapper<PlayerProfile>(db(file = "test.db"))
 
 /**
  * 带缓存的玩家家园 Mapper —— 使用独立的 test_cached.db

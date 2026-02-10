@@ -26,6 +26,8 @@ import top.maplex.ptctest.test.TestPage
 import top.maplex.ptctest.test.TestCursor
 import top.maplex.ptctest.test.TestIndexedEnum
 import top.maplex.ptctest.test.TestPostgreSQL
+import top.maplex.ptctest.test.TestCollection
+import top.maplex.ptctest.test.TestCollectionAccessor
 
 /**
  * PTC Object 集成测试命令
@@ -53,6 +55,8 @@ import top.maplex.ptctest.test.TestPostgreSQL
  * - page       分页查询 → [TestPage]
  * - cursor     游标查询 → [TestCursor]
  * - indexenum  IndexedEnum 枚举索引 → [TestIndexedEnum]
+ * - collection 容器类型（List/Set/Map）子表 → [TestCollection]
+ * - accessor   容器代理（mapOf/listOf/setOf）→ [TestCollectionAccessor]
  * - postgresql PostgreSQL 集成测试 → [TestPostgreSQL]（需要 PostgreSQL 服务）
  * - all        依次执行所有测试并汇总结果（不含 postgresql）
  *
@@ -70,7 +74,7 @@ object TestCommand {
     val main = mainCommand {
         exec<ProxyCommandSender> {
             sender.sendMessage("§e用法: /ptctest <子命令>")
-            sender.sendMessage("§7子命令: basic, column, autokey, key, rowid, batch, count, sort, sql, join, advjoin, tx, cache, linktable, nestedlink, customtype, page, cursor, indexenum, postgresql, all")
+            sender.sendMessage("§7子命令: basic, column, autokey, key, rowid, batch, count, sort, sql, join, advjoin, tx, cache, linktable, nestedlink, customtype, page, cursor, indexenum, collection, accessor, postgresql, all")
         }
     }
 
@@ -172,6 +176,16 @@ object TestCommand {
     }
 
     @CommandBody
+    val collection = subCommand {
+        exec<ProxyCommandSender> { runTest(sender, "collection") { TestCollection.run(it) } }
+    }
+
+    @CommandBody
+    val accessor = subCommand {
+        exec<ProxyCommandSender> { runTest(sender, "accessor") { TestCollectionAccessor.run(it) } }
+    }
+
+    @CommandBody
     val postgresql = subCommand {
         exec<ProxyCommandSender> { runTest(sender, "postgresql") { TestPostgreSQL.run(it) } }
     }
@@ -206,6 +220,8 @@ object TestCommand {
                 "page" to { s: ProxyCommandSender -> TestPage.run(s) },
                 "cursor" to { s: ProxyCommandSender -> TestCursor.run(s) },
                 "indexenum" to { s: ProxyCommandSender -> TestIndexedEnum.run(s) },
+                "collection" to { s: ProxyCommandSender -> TestCollection.run(s) },
+                "accessor" to { s: ProxyCommandSender -> TestCollectionAccessor.run(s) },
             )
             var passed = 0
             var failed = 0
