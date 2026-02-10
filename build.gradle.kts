@@ -15,7 +15,7 @@ taboolib {
         install(Database)           // 数据库
         install(Kether)             // 条件判断
         install(CommandHelper)      // 命令系统
-        install(PtcObject)
+        install(PtcObject, "database-postgresql")
         repoTabooLib = project.repositories.mavenLocal().url.toString()
     }
     version {

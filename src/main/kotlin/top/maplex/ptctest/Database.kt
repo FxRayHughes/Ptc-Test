@@ -1,6 +1,6 @@
 package top.maplex.ptctest
 
-import taboolib.expansion.dbFile
+import taboolib.expansion.db
 import taboolib.expansion.mapper
 import top.maplex.ptctest.data.LinkedPlayerHome
 import top.maplex.ptctest.data.Guild
@@ -17,36 +17,48 @@ import top.maplex.ptctest.data.AccountData
  *
  * 使用 `by mapper<T>(source)` 委托创建 DataMapper 实例。
  * - 首次访问时懒加载：自动建表 + 创建连接池
- * - source 参数：dbFile() 返回 SQLite 文件路径，dbSection() 返回 MySQL 配置
- * - 同一个 dbFile 的多个 mapper 共享同一个数据库文件，但各自拥有独立的连接池
+ * - source 参数：db() 从 config.yml 读取配置，enable=false 时回退到 SQLite
+ * - 同一个数据源的多个 mapper 各自拥有独立的连接池
+ *
+ * config.yml 配置示例：
+ * ```yaml
+ * database:
+ *   enable: true       # false 时回退到 SQLite (test.db)
+ *   type: mysql        # mysql / postgresql / sqlite
+ *   host: localhost
+ *   port: 3306
+ *   user: root
+ *   password: root
+ *   database: minecraft
+ * ```
  */
 
 /** 玩家家园 Mapper —— 无缓存（默认），用于大部分 CRUD 测试 */
-val homeMapper by mapper<PlayerHome>(dbFile("test.db"))
+val homeMapper by mapper<PlayerHome>(db(file = "test.db"))
 
-/** 玩家统计 Mapper —— 与 homeMapper 共用 test.db，用于 JOIN 联查测试 */
-val statsMapper by mapper<PlayerStats>(dbFile("test.db"))
+/** 玩家统计 Mapper —— 与 homeMapper 共用数据源，用于 JOIN 联查测试 */
+val statsMapper by mapper<PlayerStats>(db(file = "test.db"))
 
 /** 简单笔记 Mapper —— 无 @Id 数据类，用于 rowId / autoKey / columnType 测试 */
-val noteMapper by mapper<SimpleNote>(dbFile("test.db"))
+val noteMapper by mapper<SimpleNote>(db(file = "test.db"))
 
-/** 关联表 Mapper —— @LinkTable 自动 LEFT JOIN 测试，与 statsMapper 共用 test.db */
-val linkedHomeMapper by mapper<LinkedPlayerHome>(dbFile("test.db"))
+/** 关联表 Mapper —— @LinkTable 自动 LEFT JOIN 测试 */
+val linkedHomeMapper by mapper<LinkedPlayerHome>(db(file = "test.db"))
 
 /** 路径点 Mapper —— CustomType 自定义类型测试，Coordinate 字段自动序列化为 "x,y,z" 字符串 */
-val waypointMapper by mapper<PlayerWaypoint>(dbFile("test.db"))
+val waypointMapper by mapper<PlayerWaypoint>(db(file = "test.db"))
 
 /** 公会家园 Mapper —— @LinkTable 嵌套关联叶子节点（第三层） */
-val guildHomeMapper by mapper<GuildHome>(dbFile("test.db"))
+val guildHomeMapper by mapper<GuildHome>(db(file = "test.db"))
 
 /** 公会会长 Mapper —— @LinkTable 嵌套关联中间节点（第二层），关联 GuildHome */
-val guildLeaderMapper by mapper<GuildLeader>(dbFile("test.db"))
+val guildLeaderMapper by mapper<GuildLeader>(db(file = "test.db"))
 
 /** 公会 Mapper —— @LinkTable 嵌套关联根节点（第一层），关联 GuildLeader → GuildHome */
-val guildMapper by mapper<Guild>(dbFile("test.db"))
+val guildMapper by mapper<Guild>(db(file = "test.db"))
 
 /** 账户 Mapper —— IndexedEnum 枚举索引测试，AccountType 以数值存储 */
-val accountMapper by mapper<AccountData>(dbFile("test.db"))
+val accountMapper by mapper<AccountData>(db(file = "test.db"))
 
 /**
  * 带缓存的玩家家园 Mapper —— 使用独立的 test_cached.db
@@ -63,7 +75,7 @@ val accountMapper by mapper<AccountData>(dbFile("test.db"))
  *
  * 使用独立数据库文件，避免与无缓存 mapper 的数据互相干扰。
  */
-val cachedHomeMapper by mapper<PlayerHome>(dbFile("test_cached.db")) {
+val cachedHomeMapper by mapper<PlayerHome>(db(file = "test_cached.db")) {
     cache {
         beanCache { maximumSize = 100; expireAfterWrite = 60 }
         queryCache { maximumSize = 50; expireAfterWrite = 60 }

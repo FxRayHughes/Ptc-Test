@@ -3,9 +3,14 @@ package top.maplex.ptctest
 import taboolib.common.platform.Plugin
 import taboolib.common.platform.function.getDataFolder
 import taboolib.common.platform.function.info
+import taboolib.module.configuration.Config
+import taboolib.module.configuration.ConfigFile
 import java.io.File
 
 object PtcTest : Plugin() {
+
+    @Config("config.yml")
+    lateinit var config: ConfigFile
 
     override fun onEnable() {
         // 清空测试数据库文件，确保每次启动都是干净的测试环境

@@ -25,6 +25,7 @@ import top.maplex.ptctest.test.TestCustomType
 import top.maplex.ptctest.test.TestPage
 import top.maplex.ptctest.test.TestCursor
 import top.maplex.ptctest.test.TestIndexedEnum
+import top.maplex.ptctest.test.TestPostgreSQL
 
 /**
  * PTC Object 集成测试命令
@@ -52,7 +53,8 @@ import top.maplex.ptctest.test.TestIndexedEnum
  * - page       分页查询 → [TestPage]
  * - cursor     游标查询 → [TestCursor]
  * - indexenum  IndexedEnum 枚举索引 → [TestIndexedEnum]
- * - all        依次执行所有测试并汇总结果
+ * - postgresql PostgreSQL 集成测试 → [TestPostgreSQL]（需要 PostgreSQL 服务）
+ * - all        依次执行所有测试并汇总结果（不含 postgresql）
  *
  * @author Ptc-Test
  */
@@ -68,7 +70,7 @@ object TestCommand {
     val main = mainCommand {
         exec<ProxyCommandSender> {
             sender.sendMessage("§e用法: /ptctest <子命令>")
-            sender.sendMessage("§7子命令: basic, column, autokey, key, rowid, batch, count, sort, sql, join, advjoin, tx, cache, linktable, nestedlink, customtype, page, cursor, indexenum, all")
+            sender.sendMessage("§7子命令: basic, column, autokey, key, rowid, batch, count, sort, sql, join, advjoin, tx, cache, linktable, nestedlink, customtype, page, cursor, indexenum, postgresql, all")
         }
     }
 
@@ -167,6 +169,11 @@ object TestCommand {
     @CommandBody
     val indexenum = subCommand {
         exec<ProxyCommandSender> { runTest(sender, "indexenum") { TestIndexedEnum.run(it) } }
+    }
+
+    @CommandBody
+    val postgresql = subCommand {
+        exec<ProxyCommandSender> { runTest(sender, "postgresql") { TestPostgreSQL.run(it) } }
     }
 
     /**

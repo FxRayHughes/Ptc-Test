@@ -1,0 +1,21 @@
+# 主数据库配置
+# enable: true 时使用远程数据库（MySQL/PostgreSQL），false 时回退到 SQLite
+database:
+  enable: false
+  type: mysql
+  host: localhost
+  port: 3306
+  user: root
+  password: root
+  database: minecraft
+
+# PostgreSQL 测试配置
+postgresql:
+  enable: true
+  type: postgresql
+  host: localhost
+  port: 5432
+  user: postgres
+  password: postgres
+  database: ptc_test
+  schema: public
