@@ -6,6 +6,8 @@ import taboolib.common.platform.command.CommandHeader
 import taboolib.common.platform.command.PermissionDefault
 import taboolib.common.platform.command.mainCommand
 import taboolib.common.platform.command.subCommand
+import taboolib.common.platform.function.submit
+import taboolib.expansion.submitChain
 import top.maplex.ptctest.test.TestBasic
 import top.maplex.ptctest.test.TestColumn
 import top.maplex.ptctest.test.TestAutoKey
@@ -28,6 +30,9 @@ import top.maplex.ptctest.test.TestIndexedEnum
 import top.maplex.ptctest.test.TestPostgreSQL
 import top.maplex.ptctest.test.TestCollection
 import top.maplex.ptctest.test.TestCollectionAccessor
+import top.maplex.ptctest.test.TestIgnore
+import top.maplex.ptctest.test.TestCollectionCustomType
+import top.maplex.ptctest.test.TestTransactionPropagation
 
 /**
  * PTC Object 集成测试命令
@@ -57,6 +62,9 @@ import top.maplex.ptctest.test.TestCollectionAccessor
  * - indexenum  IndexedEnum 枚举索引 → [TestIndexedEnum]
  * - collection 容器类型（List/Set/Map）子表 → [TestCollection]
  * - accessor   容器代理（mapOf/listOf/setOf）→ [TestCollectionAccessor]
+ * - ignore     @Ignore 忽略字段 → [TestIgnore]
+ * - collct     集合 CustomType 扁平化存储 → [TestCollectionCustomType]
+ * - txprop     事务传播（嵌套事务）→ [TestTransactionPropagation]
  * - postgresql PostgreSQL 集成测试 → [TestPostgreSQL]（需要 PostgreSQL 服务）
  * - all        依次执行所有测试并汇总结果（不含 postgresql）
  *
@@ -74,7 +82,7 @@ object TestCommand {
     val main = mainCommand {
         exec<ProxyCommandSender> {
             sender.sendMessage("§e用法: /ptctest <子命令>")
-            sender.sendMessage("§7子命令: basic, column, autokey, key, rowid, batch, count, sort, sql, join, advjoin, tx, cache, linktable, nestedlink, customtype, page, cursor, indexenum, collection, accessor, postgresql, all")
+            sender.sendMessage("§7子命令: basic, column, autokey, key, rowid, batch, count, sort, sql, join, advjoin, tx, cache, linktable, nestedlink, customtype, page, cursor, indexenum, collection, accessor, ignore, collct, txprop, postgresql, all")
         }
     }
 
@@ -186,6 +194,21 @@ object TestCommand {
     }
 
     @CommandBody
+    val ignore = subCommand {
+        exec<ProxyCommandSender> { runTest(sender, "ignore") { TestIgnore.run(it) } }
+    }
+
+    @CommandBody
+    val collct = subCommand {
+        exec<ProxyCommandSender> { runTest(sender, "collct") { TestCollectionCustomType.run(it) } }
+    }
+
+    @CommandBody
+    val txprop = subCommand {
+        exec<ProxyCommandSender> { runTest(sender, "txprop") { TestTransactionPropagation.run(it) } }
+    }
+
+    @CommandBody
     val postgresql = subCommand {
         exec<ProxyCommandSender> { runTest(sender, "postgresql") { TestPostgreSQL.run(it) } }
     }
@@ -222,23 +245,31 @@ object TestCommand {
                 "indexenum" to { s: ProxyCommandSender -> TestIndexedEnum.run(s) },
                 "collection" to { s: ProxyCommandSender -> TestCollection.run(s) },
                 "accessor" to { s: ProxyCommandSender -> TestCollectionAccessor.run(s) },
+                "ignore" to { s: ProxyCommandSender -> TestIgnore.run(s) },
+                "collct" to { s: ProxyCommandSender -> TestCollectionCustomType.run(s) },
+                "txprop" to { s: ProxyCommandSender -> TestTransactionPropagation.run(s) },
             )
-            var passed = 0
-            var failed = 0
-            for ((name, test) in tests) {
-                sender.sendMessage("§e  开始测试 $name...")
-                try {
-                    test(sender)
-                    sender.sendMessage("§a  ✓ $name")
-                    passed++
-                } catch (e: Throwable) {
-                    sender.sendMessage("§c  ✗ $name: ${e.message}")
-                    e.printStackTrace()
-                    failed++
+            submitChain {
+                var passed = 0
+                var failed = 0
+                for ((name, test) in tests) {
+                    run {
+                        sender.sendMessage("§e  开始测试 $name...")
+                        try {
+                            test(sender)
+                            sender.sendMessage("§a  ✓ $name")
+                            passed++
+                        } catch (e: Throwable) {
+                            sender.sendMessage("§c  ✗ $name: ${e.message}")
+                            e.printStackTrace()
+                            failed++
+                        }
+                    }
+
                 }
+                sender.sendMessage("§6========== 测试完成 ==========")
+                sender.sendMessage("§a通过: $passed  §c失败: $failed  §7总计: ${passed + failed}")
             }
-            sender.sendMessage("§6========== 测试完成 ==========")
-            sender.sendMessage("§a通过: $passed  §c失败: $failed  §7总计: ${passed + failed}")
         }
     }
 

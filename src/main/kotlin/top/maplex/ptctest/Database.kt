@@ -15,6 +15,8 @@ import top.maplex.ptctest.data.PlayerTag
 import top.maplex.ptctest.data.PlayerPermission
 import top.maplex.ptctest.data.PlayerProperty
 import top.maplex.ptctest.data.PlayerProfile
+import top.maplex.ptctest.data.IgnorePlayerHome
+import top.maplex.ptctest.data.PlayerInventory
 
 /**
  * 数据库 Mapper 声明
@@ -97,3 +99,9 @@ val cachedHomeMapper by mapper<PlayerHome>(db(file = "test_cached.db")) {
         queryCache { maximumSize = 50; expireAfterWrite = 60 }
     }
 }
+
+/** @Ignore 注解测试 Mapper —— 忽略字段不参与数据库读写，读取时使用 Kotlin 默认值 */
+val ignoreHomeMapper by mapper<IgnorePlayerHome>(db(file = "test.db"))
+
+/** 扁平化集合 Mapper —— List<ItemData> 通过集合 CustomType 序列化为单列存储 */
+val inventoryMapper by mapper<PlayerInventory>(db(file = "test.db"))
