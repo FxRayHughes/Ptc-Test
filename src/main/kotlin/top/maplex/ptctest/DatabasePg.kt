@@ -3,6 +3,7 @@ package top.maplex.ptctest
 import taboolib.expansion.db
 import taboolib.expansion.mapper
 import top.maplex.ptctest.data.PgHome
+import top.maplex.ptctest.data.PgSchemaHome
 import top.maplex.ptctest.data.PlayerHome
 import top.maplex.ptctest.data.PlayerStats
 
@@ -34,3 +35,6 @@ val pgPlayerHomeMapper by mapper<PlayerHome>(db(node = "postgresql"))
 
 /** PostgreSQL 玩家统计 Mapper —— 用于 JOIN 联查测试 */
 val pgStatsMapper by mapper<PlayerStats>(db(node = "postgresql"))
+
+/** PostgreSQL Schema 测试 Mapper —— @TableName(schema = "game") 自动创建 Schema */
+val pgSchemaHomeMapper by mapper<PgSchemaHome>(db(node = "postgresql"))

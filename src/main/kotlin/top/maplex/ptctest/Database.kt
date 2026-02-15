@@ -1,6 +1,7 @@
 package top.maplex.ptctest
 
 import taboolib.expansion.db
+import taboolib.expansion.dbFile
 import taboolib.expansion.mapper
 import top.maplex.ptctest.data.LinkedPlayerHome
 import top.maplex.ptctest.data.Guild
@@ -17,6 +18,8 @@ import top.maplex.ptctest.data.PlayerProperty
 import top.maplex.ptctest.data.PlayerProfile
 import top.maplex.ptctest.data.IgnorePlayerHome
 import top.maplex.ptctest.data.PlayerInventory
+import top.maplex.ptctest.data.ManualHome
+import top.maplex.ptctest.data.MigrationHome
 
 /**
  * 数据库 Mapper 声明
@@ -105,3 +108,46 @@ val ignoreHomeMapper by mapper<IgnorePlayerHome>(db(file = "test.db"))
 
 /** 扁平化集合 Mapper —— List<ItemData> 通过集合 CustomType 序列化为单列存储 */
 val inventoryMapper by mapper<PlayerInventory>(db(file = "test.db"))
+
+/**
+ * 手动建表 Mapper —— 跳过自动建表，执行用户提供的 SQL
+ *
+ * manualTable(...) 接收一条或多条 SQL，框架不再自动 CREATE TABLE，
+ * 而是直接执行这些 SQL 语句。适用于需要精确控制表结构的场景。
+ */
+val manualHomeMapper by mapper<ManualHome>(dbFile("test_manual.db")) {
+    manualTable(
+        """CREATE TABLE IF NOT EXISTS manual_home (
+            username VARCHAR(64) PRIMARY KEY,
+            world VARCHAR(64),
+            x REAL DEFAULT 0,
+            y REAL DEFAULT 0,
+            z REAL DEFAULT 0
+        )"""
+    )
+}
+
+/**
+ * 版本迁移 Mapper —— 手动建表 + 版本迁移组合使用
+ *
+ * 初始建表只有 username 和 world 两个字段，
+ * 通过 migration {} 逐步添加 x、y、z 字段。
+ * 框架通过 _ptc_meta 表跟踪版本号，只执行未执行过的迁移。
+ */
+val migrationHomeMapper by mapper<MigrationHome>(dbFile("test_migration.db")) {
+    manualTable(
+        """CREATE TABLE IF NOT EXISTS migration_home (
+            username VARCHAR(64) PRIMARY KEY,
+            world VARCHAR(64)
+        )"""
+    )
+    migration {
+        version(1,
+            "ALTER TABLE migration_home ADD COLUMN x REAL DEFAULT 0",
+            "ALTER TABLE migration_home ADD COLUMN y REAL DEFAULT 0"
+        )
+        version(2,
+            "ALTER TABLE migration_home ADD COLUMN z REAL DEFAULT 0"
+        )
+    }
+}

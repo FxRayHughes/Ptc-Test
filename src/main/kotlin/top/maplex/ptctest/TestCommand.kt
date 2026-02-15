@@ -33,6 +33,9 @@ import top.maplex.ptctest.test.TestCollectionAccessor
 import top.maplex.ptctest.test.TestIgnore
 import top.maplex.ptctest.test.TestCollectionCustomType
 import top.maplex.ptctest.test.TestTransactionPropagation
+import top.maplex.ptctest.test.TestManualTable
+import top.maplex.ptctest.test.TestMigration
+import top.maplex.ptctest.test.TestPgSchema
 
 /**
  * PTC Object 集成测试命令
@@ -65,8 +68,11 @@ import top.maplex.ptctest.test.TestTransactionPropagation
  * - ignore     @Ignore 忽略字段 → [TestIgnore]
  * - collct     集合 CustomType 扁平化存储 → [TestCollectionCustomType]
  * - txprop     事务传播（嵌套事务）→ [TestTransactionPropagation]
+ * - manual     手动建表 → [TestManualTable]
+ * - migration  版本迁移 → [TestMigration]
  * - postgresql PostgreSQL 集成测试 → [TestPostgreSQL]（需要 PostgreSQL 服务）
- * - all        依次执行所有测试并汇总结果（不含 postgresql）
+ * - pgschema   PostgreSQL Schema 支持 → [TestPgSchema]（需要 PostgreSQL 服务）
+ * - all        依次执行所有测试并汇总结果（不含 postgresql / pgschema）
  *
  * @author Ptc-Test
  */
@@ -82,7 +88,7 @@ object TestCommand {
     val main = mainCommand {
         exec<ProxyCommandSender> {
             sender.sendMessage("§e用法: /ptctest <子命令>")
-            sender.sendMessage("§7子命令: basic, column, autokey, key, rowid, batch, count, sort, sql, join, advjoin, tx, cache, linktable, nestedlink, customtype, page, cursor, indexenum, collection, accessor, ignore, collct, txprop, postgresql, all")
+            sender.sendMessage("§7子命令: basic, column, autokey, key, rowid, batch, count, sort, sql, join, advjoin, tx, cache, linktable, nestedlink, customtype, page, cursor, indexenum, collection, accessor, ignore, collct, txprop, manual, migration, postgresql, pgschema, all")
         }
     }
 
@@ -209,8 +215,23 @@ object TestCommand {
     }
 
     @CommandBody
+    val manual = subCommand {
+        exec<ProxyCommandSender> { runTest(sender, "manual") { TestManualTable.run(it) } }
+    }
+
+    @CommandBody
+    val migration = subCommand {
+        exec<ProxyCommandSender> { runTest(sender, "migration") { TestMigration.run(it) } }
+    }
+
+    @CommandBody
     val postgresql = subCommand {
         exec<ProxyCommandSender> { runTest(sender, "postgresql") { TestPostgreSQL.run(it) } }
+    }
+
+    @CommandBody
+    val pgschema = subCommand {
+        exec<ProxyCommandSender> { runTest(sender, "pgschema") { TestPgSchema.run(it) } }
     }
 
     /**
@@ -248,6 +269,8 @@ object TestCommand {
                 "ignore" to { s: ProxyCommandSender -> TestIgnore.run(s) },
                 "collct" to { s: ProxyCommandSender -> TestCollectionCustomType.run(s) },
                 "txprop" to { s: ProxyCommandSender -> TestTransactionPropagation.run(s) },
+                "manual" to { s: ProxyCommandSender -> TestManualTable.run(s) },
+                "migration" to { s: ProxyCommandSender -> TestMigration.run(s) },
             )
             submitChain {
                 var passed = 0

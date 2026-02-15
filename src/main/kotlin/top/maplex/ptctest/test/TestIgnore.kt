@@ -70,14 +70,14 @@ object TestIgnore {
 
         // 插入时传入 @Ignore 字段的自定义值
         // 这些值不会写入数据库
-        val home1 = IgnorePlayerHome(
-            username = "ign_player1",
-            world = "world",
-            x = 100.0, y = 64.0, z = -200.0,
-            cachedDisplayName = "CustomName",  // 不入库
-            tempScore = 999,                    // 不入库
+        val home1 = IgnorePlayerHome().apply {
+            username = "ign_player1"
+            world = "world"
+            x = 100.0; y = 64.0; z = -200.0
+            cachedDisplayName = "CustomName"  // 不入库
+            tempScore = 999                    // 不入库
             debugInfo = "some debug info"       // 不入库
-        )
+        }
         ignoreHomeMapper.insert(home1)
 
         // 从数据库读取 → @Ignore 字段应为 Kotlin 默认值，而非插入时的值
@@ -103,13 +103,13 @@ object TestIgnore {
         sender.sendMessage("§7  --- @Ignore 值丢弃验证 ---")
 
         // 再插入一条，@Ignore 字段传入不同的值
-        val home2 = IgnorePlayerHome(
-            username = "ign_player2",
-            world = "nether",
-            x = 50.0, y = 32.0, z = 50.0,
-            cachedDisplayName = "AnotherName",
+        val home2 = IgnorePlayerHome().apply {
+            username = "ign_player2"
+            world = "nether"
+            x = 50.0; y = 32.0; z = 50.0
+            cachedDisplayName = "AnotherName"
             tempScore = 12345
-        )
+        }
         ignoreHomeMapper.insert(home2)
 
         val found2 = ignoreHomeMapper.findById("ign_player2")
@@ -125,13 +125,13 @@ object TestIgnore {
         sender.sendMessage("§7  --- update 测试 ---")
 
         // 更新 var 字段（world, x, y, z）
-        ignoreHomeMapper.update(IgnorePlayerHome(
-            username = "ign_player1",
-            world = "world_nether",
-            x = 999.0, y = 128.0, z = -999.0,
-            cachedDisplayName = "UpdatedName",  // 不会写入数据库
+        ignoreHomeMapper.update(IgnorePlayerHome().apply {
+            username = "ign_player1"
+            world = "world_nether"
+            x = 999.0; y = 128.0; z = -999.0
+            cachedDisplayName = "UpdatedName"  // 不会写入数据库
             tempScore = 777                      // 不会写入数据库
-        ))
+        })
 
         val afterUpdate = ignoreHomeMapper.findById("ign_player1")
         assert(afterUpdate != null, "update 后 findById 应返回非空")
